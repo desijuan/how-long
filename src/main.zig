@@ -1,10 +1,12 @@
 const std = @import("std");
 
-pub fn main() !void {
+pub fn main() void {
     const stdout = std.io.getStdOut().writer();
 
     var args = std.process.args();
     _ = args.next().?;
+
+    var buffer: [4]u8 = undefined;
 
     var mins_sum: u32 = 0;
 
@@ -12,20 +14,28 @@ pub fn main() !void {
     var mins0: u32 = 0;
 
     while (args.next()) |arg| {
-        if (arg.len != 4) return error.MalformedTime;
+        const str: []const u8 = switch (arg.len) {
+            3, 4 => std.fmt.bufPrint(&buffer, "{s:0>4}", .{arg}) catch
+                @panic("Unable to parse args"),
 
-        const hours_str = arg[0..2];
-        const mins_str = arg[2..4];
+            else => @panic("Malformed Time"),
+        };
 
-        const hours: u32 = try std.fmt.parseInt(u32, hours_str, 10);
-        const mins: u32 = try std.fmt.parseInt(u32, mins_str, 10);
+        const hours_str = str[0..2];
+        const mins_str = str[2..4];
 
-        if (hours > 23) return error.InvalidHours;
-        if (mins > 59) return error.InvalidMins;
+        const hours: u32 = std.fmt.parseInt(u32, hours_str, 10) catch
+            @panic("Unable to parse the hours string");
+
+        const mins: u32 = std.fmt.parseInt(u32, mins_str, 10) catch
+            @panic("Unable to parse the minutes string");
+
+        if (hours > 23) @panic("Invalud Hours");
+        if (mins > 59) @panic("Invalid Minutes");
 
         const mins1: u32 = 60 * hours + mins;
 
-        if (mins1 < mins0) return error.WrongDelta;
+        if (mins1 < mins0) @panic("Wrong Delta");
 
         if (is_last) mins_sum += mins1 - mins0;
 
@@ -36,5 +46,6 @@ pub fn main() !void {
     const total_hours: u32 = mins_sum / 60;
     const total_mins: u32 = mins_sum % 60;
 
-    try stdout.print("{d:0>2}:{d:0>2}\n", .{ total_hours, total_mins });
+    stdout.print("{d:0>2}:{d:0>2}\n", .{ total_hours, total_mins }) catch
+        @panic("Unable to print to stdout");
 }
