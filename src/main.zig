@@ -8,7 +8,7 @@ pub fn main() u8 {
 
     var mins_sum: u32 = 0;
     var mins0: u32 = 0;
-    var is_last: bool = false;
+    var is_last: bool = true;
 
     var args = std.process.args();
     _ = args.next().?;
@@ -22,6 +22,8 @@ pub fn main() u8 {
                 return 1;
             },
         };
+
+        is_last = !is_last;
 
         const hours_str = str[0..2];
         const mins_str = str[2..4];
@@ -58,8 +60,10 @@ pub fn main() u8 {
         if (is_last) mins_sum += mins1 - mins0;
 
         mins0 = mins1;
-        is_last = !is_last;
     }
+
+    if (!is_last) stdout.writeAll("\nWARNING: Missing last entry\n\n") catch
+        return 1;
 
     const total_time = Time.fromMins(mins_sum);
 
