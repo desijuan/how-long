@@ -3,10 +3,11 @@ default: debug
 BIN := hl
 OUT_DIR := zig-out/bin
 
+OPT_ENUM := Debug ReleaseSafe ReleaseFast ReleaseSmall
 OPTIMIZE ?= Debug
-
-run:
-	zig build run
+ifeq ($(filter $(OPTIMIZE),$(OPT_ENUM)),)
+$(error Invalid option: '$(OPTIMIZE)')
+endif
 
 $(OUT_DIR)/$(BIN):
 	zig build -Doptimize=$(OPTIMIZE) --summary all
@@ -23,4 +24,4 @@ install:
 clean:
 	rm -rf .zig-cache zig-out
 
-.PHONY: default run debug release install clean
+.PHONY: default debug release install clean

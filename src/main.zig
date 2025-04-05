@@ -1,8 +1,11 @@
 const std = @import("std");
 
+pub const std_options = std.Options{
+    .log_level = .info,
+};
+
 pub fn main() u8 {
     const stdout = std.io.getStdOut().writer();
-    const stderr = std.io.getStdErr().writer();
 
     var buffer: [4]u8 = undefined;
 
@@ -18,7 +21,7 @@ pub fn main() u8 {
             3, 4 => std.fmt.bufPrint(&buffer, "{s:0>4}", .{arg}) catch unreachable,
 
             else => |len| {
-                stderr.print("Expecting 4 digits, got {d}: {s}\n", .{ len, arg }) catch {};
+                std.log.err("Expecting 4 digits, got {d}: {s}", .{ len, arg });
                 return 1;
             },
         };
@@ -29,31 +32,29 @@ pub fn main() u8 {
         const mins_str = str[2..4];
 
         const hours: u32 = std.fmt.parseInt(u32, hours_str, 10) catch {
-            stderr.print("Unable to parse hours: {s}\n", .{arg}) catch {};
+            std.log.err("Unable to parse hours: {s}", .{arg});
             return 1;
         };
 
         const mins: u32 = std.fmt.parseInt(u32, mins_str, 10) catch {
-            stderr.print("Unable to parse minutes: {s}\n", .{arg}) catch {};
+            std.log.err("Unable to parse minutes: {s}", .{arg});
             return 1;
         };
 
         if (hours > 23) {
-            stderr.print("Hours number {d} is too big\n", .{hours}) catch {};
+            std.log.err("Hours number {d} is too big", .{hours});
             return 1;
         }
 
         if (mins > 59) {
-            stderr.print("Minutes number {d} is too big\n", .{mins}) catch {};
+            std.log.err("Minutes number {d} is too big", .{mins});
             return 1;
         }
 
         const mins1: u32 = 60 * hours + mins;
 
         if (mins1 < mins0) {
-            const time0 = Time.fromMins(mins0);
-            const time1 = Time.fromMins(mins1);
-            stderr.print("Wrong Delta: {} -> {}\n", .{ time0, time1 }) catch {};
+            std.log.err("Wrong Delta: {} -> {}", .{ Time.fromMins(mins0), Time.fromMins(mins1) });
             return 1;
         }
 
@@ -62,13 +63,11 @@ pub fn main() u8 {
         mins0 = mins1;
     }
 
-    if (!is_last) stdout.writeAll("\nWARNING: Missing last entry\n\n") catch
-        return 1;
+    if (!is_last) std.log.warn("Missing last entry. Ignoring value {}.", .{Time.fromMins(mins0)});
 
     const total_time = Time.fromMins(mins_sum);
 
-    stdout.print("{}\n", .{total_time}) catch
-        return 1;
+    stdout.print("{}\n", .{total_time}) catch return 1;
 
     return 0;
 }
