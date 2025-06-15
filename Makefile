@@ -1,27 +1,20 @@
-default: debug
+.DEFAULT_GOAL := debug
 
 BIN := hl
-OUT_DIR := zig-out/bin
 
-OPT_ENUM := Debug ReleaseSafe ReleaseFast ReleaseSmall
-OPTIMIZE ?= Debug
-ifeq ($(filter $(OPTIMIZE),$(OPT_ENUM)),)
-$(error Invalid option: '$(OPTIMIZE)')
-endif
+debug:
+	zig build --summary all
 
-$(OUT_DIR)/$(BIN):
-	zig build -Doptimize=$(OPTIMIZE) --summary all
-
-debug: OPTIMIZE := Debug
-debug: $(OUT_DIR)/$(BIN)
-
-release: OPTIMIZE := ReleaseSmall
-release: $(OUT_DIR)/$(BIN)
-
-install:
-	cp $(OUT_DIR)/$(BIN) /usr/local/bin/
+release:
+	zig build -Doptimize=ReleaseSmall --summary all
 
 clean:
 	rm -rf .zig-cache zig-out
 
-.PHONY: default debug release install clean
+install:
+	cp zig-out/bin/$(BIN) /usr/local/bin/
+
+uninstall:
+	rm /usr/local/bin/$(BIN)
+
+.PHONY: debug release clean install uninstall

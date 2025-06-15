@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .strip = if (optimize == .Debug) false else true,
+        .link_libc = true,
     });
 
     const exe = b.addExecutable(.{
